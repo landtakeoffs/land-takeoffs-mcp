@@ -1,0 +1,20 @@
+{
+  "name": "land-takeoffs",
+  "version": "1.0.0",
+  "description": "Sitework takeoffs from civil plan sets and CAD files. Upload a stamped plan-set PDF and/or DWG, DXF or LandXML and get sitework quantities with the source sheet and a confidence level for each line, measured cut and fill from CAD surfaces, an Excel bid sheet and a PDF summary. Sign in with a Land Takeoffs account on first connect.",
+  "author": {
+    "name": "Land Takeoffs",
+    "email": "nate@landtakeoffs.com"
+  },
+  "homepage": "https://www.landtakeoffs.com/ai",
+  "repository": "https://github.com/landtakeoffs/land-takeoffs-mcp",
+  "license": "MIT",
+  "keywords": [
+    "land takeoffs",
+    "landtakeoffs",
+    "sitework takeoff",
+    "civil plan set takeoff",
+    "cut fill takeoff"
+  ],
+  "logo": "assets/logo.png"
+}
