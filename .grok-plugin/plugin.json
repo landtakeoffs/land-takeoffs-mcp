@@ -1,0 +1,19 @@
+{
+  "name": "land-takeoffs",
+  "version": "1.0.0",
+  "description": "Sitework takeoffs from civil plan sets and CAD files via the hosted Land Takeoffs MCP at mcp.landtakeoffs.com. Get sitework quantities with source sheet and confidence, measured cut and fill from CAD surfaces, an Excel bid sheet and a PDF summary. Sign in with a Land Takeoffs account on first connect.",
+  "author": {
+    "name": "Land Takeoffs",
+    "url": "https://www.landtakeoffs.com"
+  },
+  "homepage": "https://www.landtakeoffs.com/ai",
+  "repository": "https://github.com/landtakeoffs/land-takeoffs-mcp",
+  "license": "MIT",
+  "keywords": [
+    "land takeoffs",
+    "landtakeoffs",
+    "land takeoffs mcp",
+    "land takeoffs sitework takeoff"
+  ],
+  "logo": "assets/logo.png"
+}
