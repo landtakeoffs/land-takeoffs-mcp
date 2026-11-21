@@ -18,6 +18,7 @@ Use the `land-takeoffs` MCP server tools. Never invent a quantity; report only w
    - Plan set and/or CAD together: `start_takeoff`
    - Plan-set PDF only: `start_plan_set_takeoff`
    - CAD or terrain files only: `start_cad_takeoff`
+   - Files the chat app attached and passed into the tool: `start_takeoff_from_chat_files`
    - Optional: `list_price_lists`, then pass `price_list` so the Excel workbook is priced (prices appear in the Excel only).
 5. **Answer questions.** If a start tool returns a question (for example two possible site boundaries, or which surface is existing ground), ask the user and pass the choice to `answer_cad_question`.
 6. **Wait.** Call `get_takeoff_status` with the `takeoff_id` every 30 to 60 seconds until it succeeds or fails. Takeoffs usually take a few minutes.
