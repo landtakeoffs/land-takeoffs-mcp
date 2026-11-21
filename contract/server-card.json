@@ -1,0 +1,613 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+  "name": "com.landtakeoffs/takeoffs",
+  "title": "Land Takeoffs",
+  "description": "Sitework takeoffs from civil PDFs, DWG, LandXML: cut/fill, storm, sewer, water, paving quantities",
+  "version": "1.1.1",
+  "websiteUrl": "https://www.landtakeoffs.com/ai",
+  "repository": {
+    "url": "https://github.com/landtakeoffs/land-takeoffs-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://www.landtakeoffs.com/static/favicon.svg",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "src": "https://www.landtakeoffs.com/static/brand/land-takeoffs-logo-1024-green.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "1024x1024"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.landtakeoffs.com/mcp",
+      "supportedProtocolVersions": [
+        "2025-11-25",
+        "2025-06-18",
+        "2025-03-26",
+        "2024-11-05"
+      ]
+    }
+  ],
+  "serverInfo": {
+    "name": "land-takeoffs",
+    "title": "Land Takeoffs",
+    "version": "1.1.1"
+  },
+  "authentication": {
+    "required": true,
+    "schemes": [
+      "oauth2"
+    ]
+  },
+  "tools": [
+    {
+      "name": "start_takeoff_from_chat_files",
+      "title": "Start a takeoff from files attached in the chat",
+      "description": "Starts a sitework takeoff from a plan-set PDF and/or CAD files the user attached to this chat, when the app passes those attachments into the tool (ChatGPT). plan_set is the plan-set PDF. cad_files lists the CAD drawing first, then any drawings it references (for example a survey DWG). Same credits as start_takeoff. An ambiguous CAD file returns a question that answer_cad_question accepts. Returns a takeoff_id; get_takeoff_status reports progress. Files that are only on the user's computer are outside this tool; get_upload_link returns a private upload link for those.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "plan_set": {
+            "type": "object",
+            "properties": {
+              "download_url": {
+                "type": "string"
+              },
+              "file_id": {
+                "type": "string"
+              },
+              "mime_type": {
+                "type": "string"
+              },
+              "file_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "download_url",
+              "file_id"
+            ],
+            "additionalProperties": false,
+            "description": "The attached plan-set PDF."
+          },
+          "cad_files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "download_url": {
+                  "type": "string"
+                },
+                "file_id": {
+                  "type": "string"
+                },
+                "mime_type": {
+                  "type": "string"
+                },
+                "file_name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "download_url",
+                "file_id"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 5,
+            "description": "The attached CAD drawing, then any drawings it references."
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project name for the bid sheet."
+          },
+          "strip_depth_in": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 36,
+            "description": "Topsoil strip depth in inches, if the user knows it."
+          },
+          "shrink_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 40,
+            "description": "Shrink, bank to compacted fill, percent, usually in the geotech report. Omit and no shrink is applied (labeled)."
+          },
+          "topsoil_reuse_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Share of stripped topsoil placed back as fill, percent."
+          },
+          "pavement_section_depth_ft": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Pavement section (asphalt plus base) depth, feet."
+          },
+          "storm_rcp_class": {
+            "type": "string",
+            "enum": [
+              "III",
+              "IV",
+              "V"
+            ],
+            "description": "Class for concrete storm pipe the drawing does not label. Fills only unlabeled pipe."
+          },
+          "water_pvc_type": {
+            "type": "string",
+            "enum": [
+              "C900"
+            ],
+            "description": "Type for PVC water pipe the drawing does not label."
+          },
+          "customer_ref": {
+            "type": "string",
+            "description": "Optional client or job tag."
+          },
+          "price_list": {
+            "type": "string",
+            "description": "Optional: the name of one of the user's saved price lists (list_price_lists). Prices go in the Excel workbook only."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Start a takeoff from files attached in the chat",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_price_lists",
+      "title": "List saved price lists",
+      "description": "Returns the names of the user's saved unit-price lists. A name supplied as price_list on a start tool prices that takeoff's Excel workbook only. The PDF summary does not include prices.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "List saved price lists",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "check_balance",
+      "title": "Check credit balance",
+      "description": "Returns how many takeoff credits the account has left, purchased, and used, plus the current credit pack prices. Use it to answer pricing questions.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Check credit balance",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "start_takeoff",
+      "title": "Start a takeoff (CAD file, plan set, or both)",
+      "description": "Starts a complete sitework takeoff from up to 2 files: a CAD file (DWG, DXF or LandXML) and a civil plan-set PDF. Each file is a share link (Dropbox, Google Drive, OneDrive, or a direct https link). With both, earthwork is measured from the CAD and everything else is read from the plans, in one report. Drawings the DWG references, such as a survey, go in cad_reference_urls. Uses 1 credit, plus 1 per plan-set pages over 100, charged only if it succeeds. If the CAD is ambiguous, the result is a question with options that answer_cad_question accepts. Returns a takeoff_id; get_takeoff_status reports progress.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cad_file_url": {
+            "type": "string",
+            "description": "Share link to the DWG, DXF or LandXML."
+          },
+          "cad_reference_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "description": "Share links to drawings the CAD file references (xrefs), for example a SURVEY.dwg that holds existing ground."
+          },
+          "plan_set_url": {
+            "type": "string",
+            "description": "Share link to the plan-set PDF."
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project name for the bid sheet."
+          },
+          "strip_depth_in": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 36,
+            "description": "Topsoil strip depth in inches, if the user knows it."
+          },
+          "shrink_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 40,
+            "description": "Shrink, bank to compacted fill, percent, usually in the geotech report. Omit and no shrink is applied (labeled)."
+          },
+          "topsoil_reuse_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Share of stripped topsoil placed back as fill, percent."
+          },
+          "pavement_section_depth_ft": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Pavement section (asphalt plus base) depth, feet."
+          },
+          "storm_rcp_class": {
+            "type": "string",
+            "enum": [
+              "III",
+              "IV",
+              "V"
+            ],
+            "description": "Class for concrete storm pipe the drawing does not label. Fills only unlabeled pipe."
+          },
+          "water_pvc_type": {
+            "type": "string",
+            "enum": [
+              "C900"
+            ],
+            "description": "Type for PVC water pipe the drawing does not label."
+          },
+          "customer_ref": {
+            "type": "string",
+            "description": "Optional client or job tag."
+          },
+          "price_list": {
+            "type": "string",
+            "description": "Optional: the name of one of the user's saved price lists (list_price_lists). Prices go in the Excel workbook only."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Start a takeoff (CAD file, plan set, or both)",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "start_plan_set_takeoff",
+      "title": "Start a plan-set takeoff",
+      "description": "Starts a complete sitework takeoff from a civil plan-set PDF. plan_set_url is a share link (Dropbox, Google Drive, OneDrive, or a direct https link that anyone with the link can open). Uses 1 credit per 100 pages, charged only if it succeeds. Returns a takeoff_id; get_takeoff_status reports progress.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "plan_set_url": {
+            "type": "string",
+            "description": "Share link or https URL of the PDF."
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project name for the bid sheet."
+          },
+          "customer_ref": {
+            "type": "string",
+            "description": "Optional tag for the user's own client or job number."
+          },
+          "price_list": {
+            "type": "string",
+            "description": "Optional: the name of one of the user's saved price lists (list_price_lists). Prices go in the Excel workbook only."
+          }
+        },
+        "required": [
+          "plan_set_url"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Start a plan-set takeoff",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "start_cad_takeoff",
+      "title": "Start a CAD earthwork takeoff",
+      "description": "Starts a measured earthwork takeoff from CAD or terrain files (LandXML, DWG, DXF, GeoJSON boundary). file_urls are share links to every file. If the files are ambiguous (for example two possible site boundaries), the result is a question with options that answer_cad_question accepts. Uses 1 credit, charged only if it succeeds.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file_urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "Share links or https URLs of the CAD or terrain files."
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project name for the bid sheet."
+          },
+          "strip_depth_in": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 36,
+            "description": "Topsoil strip depth in inches, if the user knows it."
+          },
+          "shrink_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 40,
+            "description": "Shrink, bank to compacted fill, percent, usually in the geotech report. Omit and no shrink is applied (labeled)."
+          },
+          "topsoil_reuse_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Share of stripped topsoil placed back as fill, percent."
+          },
+          "pavement_section_depth_ft": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Pavement section (asphalt plus base) depth, feet."
+          },
+          "storm_rcp_class": {
+            "type": "string",
+            "enum": [
+              "III",
+              "IV",
+              "V"
+            ],
+            "description": "Class for concrete storm pipe the drawing does not label. Fills only unlabeled pipe."
+          },
+          "water_pvc_type": {
+            "type": "string",
+            "enum": [
+              "C900"
+            ],
+            "description": "Type for PVC water pipe the drawing does not label."
+          },
+          "customer_ref": {
+            "type": "string",
+            "description": "Optional client or job tag."
+          },
+          "price_list": {
+            "type": "string",
+            "description": "Optional: the name of one of the user's saved price lists (list_price_lists). Prices go in the Excel workbook only."
+          }
+        },
+        "required": [
+          "file_urls"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Start a CAD earthwork takeoff",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "answer_cad_question",
+      "title": "Answer a CAD takeoff question",
+      "description": "Records the user's answer to a question from start_cad_takeoff or start_takeoff: the chosen site boundary, or which surface is existing ground and which is proposed grade. Starts the takeoff once nothing else is pending.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string"
+          },
+          "boundary_id": {
+            "type": "string",
+            "description": "The boundary the user chose."
+          },
+          "existing_surface_id": {
+            "type": "string",
+            "description": "Existing ground surface."
+          },
+          "proposed_surface_id": {
+            "type": "string",
+            "description": "Proposed grade surface."
+          },
+          "strip_depth_in": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 36
+          },
+          "shrink_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 40
+          },
+          "topsoil_reuse_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Answer a CAD takeoff question",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_takeoff_status",
+      "title": "Check takeoff progress",
+      "description": "Reports whether a takeoff is downloading, queued, running, finished, or failed. Accepts the takeoff_id from a start tool, or a job_id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "takeoff_id": {
+            "type": "string",
+            "description": "takeoff_id returned by a start tool."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "A job_id, if one is already known."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Check takeoff progress",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_takeoff_results",
+      "title": "Get takeoff quantities",
+      "description": "Returns the quantities from a finished takeoff, grouped by division, with the source sheet or file and a confidence level for each line, plus the lines that could not be determined and why. Accepts the takeoff_id from a start tool, or a job_id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "takeoff_id": {
+            "type": "string",
+            "description": "takeoff_id returned by a start tool."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "job_id from get_takeoff_status or list_takeoffs."
+          },
+          "division": {
+            "type": "string",
+            "description": "Optional: only this division."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Get takeoff quantities",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_download_links",
+      "title": "Get Excel, PDF, video and image downloads",
+      "description": "Creates and stores the client Excel bid sheet and PDF summary for a finished takeoff and returns download links for them, plus the project video, project images, and a download-all zip. Starts that render when it has not already started. Image and video files are deterministic renders of the takeoff geometry and report figures, not AI-generated media. Links expire after a short time; a later call returns fresh ones. Accepts the takeoff_id from a start tool, or a job_id.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "takeoff_id": {
+            "type": "string",
+            "description": "takeoff_id returned by a start tool."
+          },
+          "job_id": {
+            "type": "string",
+            "description": "job_id from get_takeoff_status or list_takeoffs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Get Excel, PDF, video and image downloads",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_takeoffs",
+      "title": "List recent takeoffs",
+      "description": "Returns the account's recent takeoffs, newest first, with their status.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "List recent takeoffs",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_upload_link",
+      "title": "Get a private upload link",
+      "description": "Returns a private upload link when the plans are files on the user's computer or a share link fails. The link is valid for 24 hours, good for one takeoff, and needs no sign-in and no chat file-size limit. The user drops the plan-set PDF, the CAD file, or both, plus any drawings the CAD references (such as a survey DWG). Apps that support MCP Apps also show an upload card in the chat. Returns a takeoff_id; get_takeoff_status reports progress.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "project_name": {
+            "type": "string",
+            "description": "Project name for the bid sheet."
+          },
+          "strip_depth_in": {
+            "type": "number",
+            "description": "Topsoil strip depth in inches, if the user knows it."
+          },
+          "customer_ref": {
+            "type": "string",
+            "description": "Optional client or job tag."
+          },
+          "price_list": {
+            "type": "string",
+            "description": "Optional: the name of one of the user's saved price lists (list_price_lists). Prices go in the Excel workbook only."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Get a private upload link",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_upload_page",
+      "title": "Upload plans on the website",
+      "description": "Returns the signed-in account page, where the user can upload files and see every takeoff. A one-takeoff upload of local files is the private link from get_upload_link.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Upload plans on the website",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "ui://land-takeoffs/upload-card.html",
+      "name": "upload_card",
+      "title": "Upload plans",
+      "description": "Drop the plan set and CAD files for a takeoff without leaving the chat.",
+      "mimeType": "text/html;profile=mcp-app"
+    }
+  ],
+  "prompts": []
+}
